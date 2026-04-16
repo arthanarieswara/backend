@@ -11,6 +11,7 @@ require("./config/db");
 app.use(cors());
 app.use(express.json());
 
+
 /* ROOT */
 app.get("/", (req, res) => {
   res.send("College ERP Backend Running");

@@ -11,6 +11,7 @@ require("./config/db");
 app.use(cors());
 app.use(express.json());
 
+
 /* ROOT */
 app.get("/", (req, res) => {
   res.send("College ERP Backend Running");
@@ -30,6 +31,10 @@ const feesRoutes = require("./routes/feesRoutes");
 const marksRoutes = require("./routes/marksRoutes");
 const studentRoutes = require("./routes/studentRoutes");
 const subjectRoutes = require("./routes/subjectRoutes");
+const mappingRoutes = require("./routes/mappingRoutes");
+const facultyAttendanceRoutes = require("./routes/facultyAttendanceRoutes");
+
+
 
 /* API ENDPOINTS */
 
@@ -45,6 +50,11 @@ app.use("/api/fees", feesRoutes);
 app.use("/api/marks", marksRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/subjects", subjectRoutes);
+app.use("/api/mapping", mappingRoutes);
+app.use("/api/faculty-attendance", facultyAttendanceRoutes);
+
+
+
 
 /* SERVER */
 
