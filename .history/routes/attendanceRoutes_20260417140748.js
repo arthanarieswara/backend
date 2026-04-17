@@ -14,35 +14,35 @@ router.post(
   "/",
   authenticateToken,
   authorizeRoles("Admin", "Faculty"),
-  attendanceController.markAttendance,
+  attendanceController.markAttendance
 );
 
 /* GET STUDENTS */
 router.get(
   "/filter",
   authenticateToken,
-  studentController.getStudentsByDeptSemester,
+  studentController.getStudentsByDeptSemester
 );
 
 /* GET STUDENT ATTENDANCE */
 router.get(
   "/student/:student_id",
   authenticateToken,
-  attendanceController.getStudentAttendance,
+  attendanceController.getStudentAttendance
 );
 
 /* SUMMARY */
 router.get(
   "/summary",
   authenticateToken,
-  attendanceController.getAttendanceSummary,
+  attendanceController.getAttendanceSummary
 );
 
 /* EDIT ATTENDANCE */
 router.get(
   "/edit",
   authenticateToken,
-  attendanceController.getAttendanceForEdit,
+  attendanceController.getAttendanceForEdit
 );
 
 module.exports = router;

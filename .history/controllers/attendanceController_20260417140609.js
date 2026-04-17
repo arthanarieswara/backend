@@ -26,7 +26,6 @@ exports.getStudentsByDeptSemester = async (req, res) => {
     const result = await db.query(query, params);
 
     res.json(result.rows);
-
   } catch (err) {
     console.error("Student Fetch Error:", err);
     res.status(500).json({ message: "Server error" });
@@ -48,12 +47,6 @@ exports.markAttendance = async (req, res) => {
       });
     }
 
-    if (period < 1 || period > 8) {
-      return res.status(400).json({
-        message: "Invalid period",
-      });
-    }
-
     /* GET FACULTY */
     const facultyResult = await db.query(
       `SELECT faculty_id FROM user_mapping WHERE user_id=$1`,
@@ -68,10 +61,8 @@ exports.markAttendance = async (req, res) => {
 
     const faculty_id = facultyResult.rows[0].faculty_id;
 
-    /* INSERT / UPDATE ATTENDANCE */
+    /* INSERT / UPDATE */
     for (let record of attendance) {
-      if (!record.student_id || !record.status) continue;
-
       await db.query(
         `INSERT INTO attendance
         (student_id, subject_id, faculty_id, date, period, status, section)
@@ -99,39 +90,6 @@ exports.markAttendance = async (req, res) => {
 };
 
 /* ===============================
-   GET STUDENT ATTENDANCE
-================================ */
-
-exports.getStudentAttendance = async (req, res) => {
-  const { student_id } = req.params;
-
-  try {
-    const result = await db.query(
-      `
-      SELECT 
-        a.id,
-        a.date,
-        a.period,
-        a.status,
-        a.section,
-        sub.name AS subject_name
-      FROM attendance a
-      JOIN subjects sub ON a.subject_id = sub.id
-      WHERE a.student_id = $1
-      ORDER BY a.date DESC
-      `,
-      [student_id]
-    );
-
-    res.json(result.rows);
-
-  } catch (error) {
-    console.error("Student Attendance Error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-/* ===============================
    GET ATTENDANCE FOR EDIT
 ================================ */
 
@@ -142,13 +100,14 @@ exports.getAttendanceForEdit = async (req, res) => {
     const result = await db.query(
       `
       SELECT 
-        student_id,
-        status
-      FROM attendance
-      WHERE subject_id=$1
-      AND date=$2
-      AND period=$3
-      AND section=$4
+        a.student_id,
+        a.status
+      FROM attendance a
+      JOIN students s ON a.student_id = s.id
+      WHERE a.subject_id=$1
+      AND a.date=$2
+      AND a.period=$3
+      AND a.section=$4
       `,
       [subject_id, date, period, section]
     );
@@ -162,19 +121,13 @@ exports.getAttendanceForEdit = async (req, res) => {
 };
 
 /* ===============================
-   ATTENDANCE SUMMARY
+   ATTENDANCE SUMMARY (UPDATED)
 ================================ */
 
 exports.getAttendanceSummary = async (req, res) => {
   const { subject_id, date, period, semester, section } = req.query;
 
   try {
-    if (!date) {
-      return res.status(400).json({
-        message: "date is required",
-      });
-    }
-
     let params = [date];
     let condition = `WHERE a.date = $1`;
 

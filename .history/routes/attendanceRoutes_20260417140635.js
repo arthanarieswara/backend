@@ -31,18 +31,13 @@ router.get(
   attendanceController.getStudentAttendance,
 );
 
-/* SUMMARY */
+/* ✅ ADD THIS */
 router.get(
   "/summary",
   authenticateToken,
   attendanceController.getAttendanceSummary,
 );
 
-/* EDIT ATTENDANCE */
-router.get(
-  "/edit",
-  authenticateToken,
-  attendanceController.getAttendanceForEdit,
-);
+router.get("/edit", getAttendanceForEdit);
 
 module.exports = router;
