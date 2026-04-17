@@ -44,7 +44,7 @@ exports.markAttendance = async (req, res) => {
 
     const faculty = await db.query(
       `SELECT faculty_id FROM user_mapping WHERE user_id=$1`,
-      [user_id]
+      [user_id],
     );
 
     if (!faculty.rows.length) {
@@ -53,9 +53,7 @@ exports.markAttendance = async (req, res) => {
 
     const faculty_id = faculty.rows[0].faculty_id;
 
-    const periods = whole_day
-      ? [1, 2, 3, 4, 5, 6, 7, 8]
-      : [period];
+    const periods = whole_day ? [1, 2, 3, 4, 5, 6, 7, 8] : [period];
 
     for (let p of periods) {
       for (let rec of attendance) {
@@ -65,7 +63,7 @@ exports.markAttendance = async (req, res) => {
           VALUES ($1,$2,$3,$4,$5,$6)
           ON CONFLICT (student_id, date, period, section)
           DO UPDATE SET status = EXCLUDED.status`,
-          [rec.student_id, faculty_id, date, p, rec.status, section]
+          [rec.student_id, faculty_id, date, p, rec.status, section],
         );
       }
     }
@@ -99,7 +97,7 @@ exports.getClassWiseSummary = async (req, res) => {
       GROUP BY s.semester, s.section
       ORDER BY s.semester, s.section
       `,
-      [date, department_id]
+      [date, department_id],
     );
 
     res.json(result.rows);
@@ -130,7 +128,7 @@ exports.getDepartmentSummary = async (req, res) => {
       GROUP BY d.name
       ORDER BY d.name
       `,
-      [date]
+      [date],
     );
 
     res.json(result.rows);
@@ -140,4 +138,47 @@ exports.getDepartmentSummary = async (req, res) => {
   }
 };
 
+/* ===============================
+   OVERALL SUMMARY (USED IN DASHBOARD)
+================================ */
+exports.getAttendanceSummary = async (req, res) => {
+  const { date, department_id, semester, section } = req.query;
 
+  try {
+    let query = `
+      SELECT 
+        COUNT(CASE WHEN a.status='Present' THEN 1 END) AS present_count,
+        COUNT(CASE WHEN a.status='Absent' THEN 1 END) AS absent_count,
+        COUNT(*) AS total_students
+      FROM attendance a
+      JOIN students s ON a.student_id = s.id
+      WHERE a.date = $1
+    `;
+
+    let params = [date];
+
+    if (department_id) {
+      params.push(department_id);
+      query += ` AND s.department_id = $${params.length}`;
+    }
+
+    if (semester) {
+      params.push(semester);
+      query += ` AND s.semester = $${params.length}`;
+    }
+
+    if (section) {
+      params.push(section);
+      query += ` AND s.section = $${params.length}`;
+    }
+
+    const overall = await db.query(query, params);
+
+    res.json({
+      overall: overall.rows[0],
+    });
+  } catch (err) {
+    console.error("Summary Error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};

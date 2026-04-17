@@ -25,25 +25,25 @@ router.get(
 );
 
 /* GET STUDENT ATTENDANCE */
-// router.get(
-//   "/student/:student_id",
-//   authenticateToken,
-//   attendanceController.getStudentAttendance,
-// );
+router.get(
+  "/student/:student_id",
+  authenticateToken,
+  attendanceController.getStudentAttendance,
+);
 
-// /* SUMMARY */
-// router.get(
-//   "/summary",
-//   authenticateToken,
-//   attendanceController.getAttendanceSummary,
-// );
+/* SUMMARY */
+router.get(
+  "/summary",
+  authenticateToken,
+  attendanceController.getAttendanceSummary,
+);
 
-// /* EDIT ATTENDANCE */
-// router.get(
-//   "/edit",
-//   authenticateToken,
-//   attendanceController.getAttendanceForEdit,
-// );
+/* EDIT ATTENDANCE */
+router.get(
+  "/edit",
+  authenticateToken,
+  attendanceController.getAttendanceForEdit,
+);
 
 router.get("/class-summary", authenticateToken, attendanceController.getClassWiseSummary);
 
