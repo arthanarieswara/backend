@@ -11,7 +11,7 @@ const {
 
 /* ================= STUDENTS ================= */
 router.get(
-  "/students",
+  "/students/",
   authenticateToken,
   studentController.getStudentsByDeptSemester
 );
