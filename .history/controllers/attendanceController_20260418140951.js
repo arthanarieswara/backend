@@ -254,3 +254,49 @@ exports.getAttendanceSummary = async (req, res) => {
   }
 };
 
+exports.getStudentsByClass = async (req, res) => {
+  try {
+    let { department_id, semester, section } = req.query;
+
+    // Convert types
+    department_id = parseInt(department_id);
+    semester = parseInt(semester);
+
+    console.log("Incoming:", { department_id, semester, section });
+
+    // Validation
+    if (!department_id || !semester) {
+      return res.status(400).json({
+        message: "Department and Semester are required",
+      });
+    }
+
+    let query = `
+      SELECT *
+      FROM students
+      WHERE department_id = $1
+      AND semester = $2
+    `;
+
+    let params = [department_id, semester];
+
+    // Optional section filter
+    if (section && section.trim() !== "") {
+      section = section.trim().toUpperCase();
+      params.push(section);
+      query += ` AND UPPER(section) = $${params.length}`;
+    }
+
+    query += ` ORDER BY roll_number ASC`;
+
+    console.log("FINAL QUERY:", query);
+    console.log("PARAMS:", params);
+
+    const result = await db.query(query, params);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error fetching students:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};

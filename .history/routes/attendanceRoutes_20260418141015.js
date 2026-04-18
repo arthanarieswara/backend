@@ -11,9 +11,9 @@ const {
 
 /* ================= STUDENTS ================= */
 router.get(
-  "/students/by-class",
+  "/students",
   authenticateToken,
-  studentController.getStudentsByClass
+  studentController.getStudentsByDeptSemester,
 );
 
 /* ================= ATTENDANCE ================= */
@@ -23,28 +23,34 @@ router.post(
   "/attendance",
   authenticateToken,
   authorizeRoles("Admin", "Faculty"),
-  attendanceController.markAttendance
+  attendanceController.markAttendance,
 );
 
 /* SUMMARY */
 router.get(
   "/attendance/summary",
   authenticateToken,
-  attendanceController.getAttendanceSummary
+  attendanceController.getAttendanceSummary,
 );
 
 /* CLASS SUMMARY */
 router.get(
   "/attendance/class-summary",
   authenticateToken,
-  attendanceController.getClassWiseSummary
+  attendanceController.getClassWiseSummary,
 );
 
 /* DEPARTMENT SUMMARY */
 router.get(
   "/attendance/department-summary",
   authenticateToken,
-  attendanceController.getDepartmentSummary
+  attendanceController.getDepartmentSummary,
+);
+
+router.get(
+  "/students/by-class",
+  authenticateToken,
+  studentController.getStudentsByClass,
 );
 
 module.exports = router;

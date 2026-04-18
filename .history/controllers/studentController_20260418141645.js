@@ -1,8 +1,9 @@
 const pool = require("../config/db");
 
 /* ===============================
-   GET ALL STUDENTS
+   GET STUDENTS
 ================================ */
+
 const getStudents = async (req, res) => {
   try {
     const result = await pool.query(`
@@ -26,6 +27,7 @@ const getStudents = async (req, res) => {
 /* ===============================
    ADD STUDENT
 ================================ */
+
 const addStudent = async (req, res) => {
   const {
     name,
@@ -64,7 +66,7 @@ const addStudent = async (req, res) => {
         section,
         start_year,
         end_year,
-      ]
+      ],
     );
 
     res.json(result.rows[0]);
@@ -77,6 +79,7 @@ const addStudent = async (req, res) => {
 /* ===============================
    UPDATE STUDENT
 ================================ */
+
 const updateStudent = async (req, res) => {
   const { id } = req.params;
 
@@ -111,7 +114,7 @@ const updateStudent = async (req, res) => {
         start_year,
         end_year,
         id,
-      ]
+      ],
     );
 
     if (result.rows.length === 0) {
@@ -128,13 +131,14 @@ const updateStudent = async (req, res) => {
 /* ===============================
    DELETE STUDENT
 ================================ */
+
 const deleteStudent = async (req, res) => {
   const { id } = req.params;
 
   try {
     const result = await pool.query(
       "DELETE FROM students WHERE id=$1 RETURNING *",
-      [id]
+      [id],
     );
 
     if (result.rows.length === 0) {
@@ -149,17 +153,75 @@ const deleteStudent = async (req, res) => {
 };
 
 /* ===============================
-   FINAL FILTER (DEPT + SEM + SECTION)
+   FILTER STUDENTS BY DEPARTMENT + SEMESTER
 ================================ */
-const getStudentsByClass = async (req, res) => {
+
+const getStudentsByDeptSemester = async (req, res) => {
+  const { department_id, semester } = req.query;
+
+  try {
+    const result = await pool.query(
+      `SELECT 
+         *,
+         (start_year || ' - ' || end_year) AS batch
+       FROM students
+       WHERE department_id = $1
+       AND semester = $2
+       ORDER BY name`,
+      [department_id, semester],
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Filter Students Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+/* ===============================
+   FILTER STUDENTS BY SEMESTER + SECTION
+================================ */
+
+const getStudentsBySemSection = async (req, res) => {
+  const { semester, section } = req.query;
+
+  try {
+    let query = `
+      SELECT *,
+      (start_year || ' - ' || end_year) AS batch
+      FROM students
+      WHERE semester = $1
+    `;
+
+    let params = [semester];
+
+    if (section && section !== "None") {
+      query += ` AND section = $2`;
+      params.push(section);
+    }
+
+    query += ` ORDER BY roll_number`;
+
+    const result = await pool.query(query, params);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Sem + Section Filter Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getStudentsByClass = async (req, res) => {
   try {
     let { department_id, semester, section } = req.query;
 
+    // Convert types
     department_id = parseInt(department_id);
     semester = parseInt(semester);
 
     console.log("Incoming:", { department_id, semester, section });
 
+    // Validation
     if (!department_id || !semester) {
       return res.status(400).json({
         message: "Department and Semester are required",
@@ -167,8 +229,7 @@ const getStudentsByClass = async (req, res) => {
     }
 
     let query = `
-      SELECT *,
-      (start_year || ' - ' || end_year) AS batch
+      SELECT *
       FROM students
       WHERE department_id = $1
       AND semester = $2
@@ -176,7 +237,7 @@ const getStudentsByClass = async (req, res) => {
 
     let params = [department_id, semester];
 
-    // ✅ Section filter (FINAL FIX)
+    // Optional section filter
     if (section && section.trim() !== "") {
       section = section.trim().toUpperCase();
       params.push(section);
@@ -188,7 +249,7 @@ const getStudentsByClass = async (req, res) => {
     console.log("FINAL QUERY:", query);
     console.log("PARAMS:", params);
 
-    const result = await pool.query(query, params);
+    const result = await db.query(query, params);
 
     res.json(result.rows);
   } catch (err) {
@@ -197,10 +258,14 @@ const getStudentsByClass = async (req, res) => {
   }
 };
 
+
+
 module.exports = {
   getStudents,
   addStudent,
   updateStudent,
   deleteStudent,
-  getStudentsByClass
+  getStudentsByDeptSemester,
+  getStudentsBySemSection, // ✅ ADD THIS
+  getStudentsByClass      // ✅ ADD THIS
 };

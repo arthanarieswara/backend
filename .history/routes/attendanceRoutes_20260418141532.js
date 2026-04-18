@@ -11,6 +11,12 @@ const {
 
 /* ================= STUDENTS ================= */
 router.get(
+  "/students",
+  authenticateToken,
+  studentController.getStudentsByDeptSemester
+);
+
+router.get(
   "/students/by-class",
   authenticateToken,
   studentController.getStudentsByClass
