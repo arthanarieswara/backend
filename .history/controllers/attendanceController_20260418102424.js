@@ -4,18 +4,19 @@ const db = require("../config/db");
    GET STUDENTS BY DEPT + SEM + SECTION
 ================================ */
 exports.getStudentsByDeptSemester = async (req, res) => {
-  let department_id = parseInt(req.query.department_id);
-  let semester = parseInt(req.query.semester);
-  let section = req.query.section;
+  let { department_id, semester, section } = req.query;
 
   try {
     console.log("Incoming:", req.query);
 
     if (!department_id || !semester) {
       return res.status(400).json({
-        message: "Department and Semester required",
+        message: "Department and Semester are required",
       });
     }
+
+    department_id = parseInt(department_id);
+    semester = parseInt(semester);
 
     let query = `
       SELECT * FROM students
@@ -25,23 +26,23 @@ exports.getStudentsByDeptSemester = async (req, res) => {
 
     let params = [department_id, semester];
 
-    /* ================= FIXED SECTION FILTER ================= */
-    if (section) {
-      section = section.trim().toUpperCase(); // 🔥 normalize input
+    // 🔥 FORCE CLEAN SECTION VALUE
+    if (section !== undefined && section !== null && section.trim() !== "") {
+      const cleanSection = section.trim();
 
-      if (section !== "") {
-        params.push(section);
-
-        query += `
-          AND TRIM(UPPER(section)) = $${params.length}
-        `;
-      }
+      params.push(cleanSection);
+      query += ` AND section = $${params.length}`;
     }
 
     query += ` ORDER BY roll_number ASC`;
 
     console.log("FINAL QUERY:", query);
-    console.log("PARAMS:", params);
+    console.log("FINAL PARAMS:", params);
+
+    console.log("=== REQUEST ===");
+    console.log("Department:", department_id);
+    console.log("Semester:", semester);
+    console.log("Section:", section);
 
     const result = await db.query(query, params);
 

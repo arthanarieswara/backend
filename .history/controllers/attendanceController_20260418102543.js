@@ -25,16 +25,13 @@ exports.getStudentsByDeptSemester = async (req, res) => {
 
     let params = [department_id, semester];
 
-    /* ================= FIXED SECTION FILTER ================= */
-    if (section) {
-      section = section.trim().toUpperCase(); // 🔥 normalize input
+    // 🔥 FORCE ADD SECTION FILTER (no loose condition)
+    if (typeof section === "string") {
+      section = section.trim();
 
-      if (section !== "") {
+      if (section.length > 0) {
         params.push(section);
-
-        query += `
-          AND TRIM(UPPER(section)) = $${params.length}
-        `;
+        query += ` AND section = $${params.length}`;
       }
     }
 
