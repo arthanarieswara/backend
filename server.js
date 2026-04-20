@@ -39,7 +39,7 @@ const facultyAttendanceRoutes = require("./routes/facultyAttendanceRoutes");
 /* API ENDPOINTS */
 
 app.use("/api/auth", authRoutes);
-app.use("/api/attendance", attendanceRoutes);
+app.use("/attendance", attendanceRoutes);
 app.use("/api/classes", classRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/departments", departmentRoutes);
