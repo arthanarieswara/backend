@@ -195,27 +195,25 @@ exports.getAttendanceSummary = async (req, res) => {
     /* ================= CLASS-WISE ================= */
     const classWise = await db.query(
       `
-  SELECT 
-    d.name AS department_name,   -- 🔥 ADD THIS
-    s.semester,
-    s.section,
-    COUNT(*) FILTER (WHERE sub.day_status = 1) AS present_count,
-    COUNT(*) FILTER (WHERE sub.day_status = 0) AS absent_count,
-    COUNT(*) AS total
-  FROM (
-    SELECT 
-      a.student_id,
-      MAX(CASE WHEN a.status = 'Present' THEN 1 ELSE 0 END) AS day_status
-    FROM attendance a
-    JOIN students s ON a.student_id = s.id
-    WHERE ${whereClause}
-    GROUP BY a.student_id
-  ) sub
-  JOIN students s ON sub.student_id = s.id
-  JOIN departments d ON s.department_id = d.id   -- 🔥 ADD THIS
-  GROUP BY d.name, s.semester, s.section
-  ORDER BY d.name, s.semester, s.section
-  `,
+      SELECT 
+        s.semester,
+        s.section,
+        COUNT(*) FILTER (WHERE sub.day_status = 1) AS present_count,
+        COUNT(*) FILTER (WHERE sub.day_status = 0) AS absent_count,
+        COUNT(*) AS total
+      FROM (
+        SELECT 
+          a.student_id,
+          MAX(CASE WHEN a.status = 'Present' THEN 1 ELSE 0 END) AS day_status
+        FROM attendance a
+        JOIN students s ON a.student_id = s.id
+        WHERE ${whereClause}
+        GROUP BY a.student_id
+      ) sub
+      JOIN students s ON sub.student_id = s.id
+      GROUP BY s.semester, s.section
+      ORDER BY s.semester, s.section
+      `,
       params,
     );
 
@@ -255,3 +253,4 @@ exports.getAttendanceSummary = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
